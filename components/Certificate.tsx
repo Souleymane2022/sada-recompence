@@ -247,15 +247,23 @@ export default function Certificate({ data, scale = 1, id = 'certificate-render'
           <img
             src="/logos/smart-africa.svg"
             alt="Smart Africa"
-            style={{ height: 70, objectFit: 'contain' }}
+            style={{ height: 68, objectFit: 'contain' }}
           />
 
-          {/* Certificate type seal */}
-          <CertSeal
-            label={sealLabel}
-            customLabel={data.customTypeLabel}
-            type={data.type}
-          />
+          {/* Right: SADA logo + seal stacked */}
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4 }}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/logos/sada.svg"
+              alt="Smart Africa Digital Academy"
+              style={{ height: 42, objectFit: 'contain' }}
+            />
+            <CertSeal
+              label={sealLabel}
+              customLabel={data.customTypeLabel}
+              type={data.type}
+            />
+          </div>
         </div>
 
         {/* ── PRESENTED TO ── */}

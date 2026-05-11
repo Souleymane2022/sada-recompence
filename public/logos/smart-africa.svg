@@ -1,69 +1,89 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 80" width="180" height="80">
-  <!-- Pixelated Africa continent -->
-  <g transform="translate(2,4)">
-    <!-- Row 0 -->
-    <rect x="18" y="0"  width="5" height="5" fill="#1B3A6B"/>
-    <rect x="24" y="0"  width="5" height="5" fill="#00B0BE"/>
-    <rect x="30" y="0"  width="5" height="5" fill="#1B3A6B"/>
-    <rect x="36" y="0"  width="5" height="5" fill="#00B0BE"/>
-    <!-- Row 1 -->
-    <rect x="12" y="6"  width="5" height="5" fill="#00B0BE"/>
-    <rect x="18" y="6"  width="5" height="5" fill="#1B3A6B"/>
-    <rect x="24" y="6"  width="5" height="5" fill="#00B0BE"/>
-    <rect x="30" y="6"  width="5" height="5" fill="#1B3A6B"/>
-    <rect x="36" y="6"  width="5" height="5" fill="#1B3A6B"/>
-    <rect x="42" y="6"  width="5" height="5" fill="#00A651"/>
-    <!-- Row 2 -->
-    <rect x="6"  y="12" width="5" height="5" fill="#1B3A6B"/>
-    <rect x="12" y="12" width="5" height="5" fill="#00B0BE"/>
-    <rect x="18" y="12" width="5" height="5" fill="#1B3A6B"/>
-    <rect x="24" y="12" width="5" height="5" fill="#00B0BE"/>
-    <rect x="30" y="12" width="5" height="5" fill="#1B3A6B"/>
-    <rect x="36" y="12" width="5" height="5" fill="#00B0BE"/>
-    <rect x="42" y="12" width="5" height="5" fill="#1B3A6B"/>
-    <!-- Row 3 – horn of africa -->
-    <rect x="6"  y="18" width="5" height="5" fill="#00B0BE"/>
-    <rect x="12" y="18" width="5" height="5" fill="#1B3A6B"/>
-    <rect x="18" y="18" width="5" height="5" fill="#00B0BE"/>
-    <rect x="24" y="18" width="5" height="5" fill="#1B3A6B"/>
-    <rect x="30" y="18" width="5" height="5" fill="#00B0BE"/>
-    <rect x="36" y="18" width="5" height="5" fill="#1B3A6B"/>
-    <rect x="42" y="18" width="5" height="5" fill="#00B0BE"/>
-    <rect x="48" y="18" width="5" height="5" fill="#1B3A6B"/>
-    <!-- Row 4 -->
-    <rect x="6"  y="24" width="5" height="5" fill="#1B3A6B"/>
-    <rect x="12" y="24" width="5" height="5" fill="#00B0BE"/>
-    <rect x="18" y="24" width="5" height="5" fill="#1B3A6B"/>
-    <rect x="24" y="24" width="5" height="5" fill="#00A651"/>
-    <rect x="30" y="24" width="5" height="5" fill="#1B3A6B"/>
-    <rect x="36" y="24" width="5" height="5" fill="#00B0BE"/>
-    <rect x="42" y="24" width="5" height="5" fill="#1B3A6B"/>
-    <!-- Row 5 -->
-    <rect x="6"  y="30" width="5" height="5" fill="#00B0BE"/>
-    <rect x="12" y="30" width="5" height="5" fill="#1B3A6B"/>
-    <rect x="18" y="30" width="5" height="5" fill="#00B0BE"/>
-    <rect x="24" y="30" width="5" height="5" fill="#1B3A6B"/>
-    <rect x="30" y="30" width="5" height="5" fill="#00B0BE"/>
-    <rect x="36" y="30" width="5" height="5" fill="#1B3A6B"/>
-    <!-- Row 6 -->
-    <rect x="12" y="36" width="5" height="5" fill="#1B3A6B"/>
-    <rect x="18" y="36" width="5" height="5" fill="#00B0BE"/>
-    <rect x="24" y="36" width="5" height="5" fill="#1B3A6B"/>
-    <rect x="30" y="36" width="5" height="5" fill="#00A651"/>
-    <!-- Row 7 -->
-    <rect x="18" y="42" width="5" height="5" fill="#00B0BE"/>
-    <rect x="24" y="42" width="5" height="5" fill="#1B3A6B"/>
-    <!-- Row 8 -->
-    <rect x="18" y="48" width="5" height="5" fill="#1B3A6B"/>
-    <!-- Row 9 (cape) -->
-    <rect x="18" y="54" width="5" height="5" fill="#00B0BE"/>
-    <rect x="24" y="54" width="5" height="5" fill="#1B3A6B"/>
-  </g>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 265 80" width="265" height="80">
+  <!-- ═══ PIXEL AFRICA MAP (5px square, 1px gap = 6px cell) ═══ -->
+  <!-- Colors: navy=#1B3A6B  teal=#00AECC  green=#3CB44A  orange=#F7941D -->
 
-  <!-- "smart africa" text -->
-  <text x="62" y="26" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="900" fill="#1B3A6B" letter-spacing="0">smart</text>
-  <text x="62" y="46" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="900" fill="#1B3A6B" letter-spacing="0">africa</text>
+  <!-- Row 0 – orange cross top -->
+  <rect x="24" y="0"  width="5" height="5" fill="#F7941D" rx="0.5"/>
 
-  <!-- Tagline -->
-  <text x="62" y="58" font-family="Arial, Helvetica, sans-serif" font-size="6" fill="#888888" letter-spacing="0.5">CONNECT. INNOVATE. TRANSFORM.</text>
+  <!-- Row 1 – orange cross middle -->
+  <rect x="18" y="6"  width="5" height="5" fill="#F7941D" rx="0.5"/>
+  <rect x="24" y="6"  width="5" height="5" fill="#F7941D" rx="0.5"/>
+  <rect x="30" y="6"  width="5" height="5" fill="#F7941D" rx="0.5"/>
+
+  <!-- Row 2 – orange cross bottom -->
+  <rect x="24" y="12" width="5" height="5" fill="#F7941D" rx="0.5"/>
+
+  <!-- Row 3 -->
+  <rect x="12" y="18" width="5" height="5" fill="#1B3A6B" rx="0.5"/>
+  <rect x="18" y="18" width="5" height="5" fill="#00AECC" rx="0.5"/>
+  <rect x="24" y="18" width="5" height="5" fill="#00AECC" rx="0.5"/>
+  <rect x="30" y="18" width="5" height="5" fill="#00AECC" rx="0.5"/>
+  <rect x="36" y="18" width="5" height="5" fill="#3CB44A" rx="0.5"/>
+
+  <!-- Row 4 -->
+  <rect x="6"  y="24" width="5" height="5" fill="#1B3A6B" rx="0.5"/>
+  <rect x="12" y="24" width="5" height="5" fill="#1B3A6B" rx="0.5"/>
+  <rect x="18" y="24" width="5" height="5" fill="#00AECC" rx="0.5"/>
+  <rect x="24" y="24" width="5" height="5" fill="#00AECC" rx="0.5"/>
+  <rect x="30" y="24" width="5" height="5" fill="#3CB44A" rx="0.5"/>
+  <rect x="36" y="24" width="5" height="5" fill="#3CB44A" rx="0.5"/>
+  <rect x="42" y="24" width="5" height="5" fill="#00AECC" rx="0.5"/>
+
+  <!-- Row 5 – widest, horn of Africa on right -->
+  <rect x="0"  y="30" width="5" height="5" fill="#1B3A6B" rx="0.5"/>
+  <rect x="6"  y="30" width="5" height="5" fill="#1B3A6B" rx="0.5"/>
+  <rect x="12" y="30" width="5" height="5" fill="#1B3A6B" rx="0.5"/>
+  <rect x="18" y="30" width="5" height="5" fill="#00AECC" rx="0.5"/>
+  <rect x="24" y="30" width="5" height="5" fill="#3CB44A" rx="0.5"/>
+  <rect x="30" y="30" width="5" height="5" fill="#3CB44A" rx="0.5"/>
+  <rect x="36" y="30" width="5" height="5" fill="#00AECC" rx="0.5"/>
+  <rect x="42" y="30" width="5" height="5" fill="#00AECC" rx="0.5"/>
+  <rect x="48" y="30" width="5" height="5" fill="#F7941D" rx="0.5"/>
+
+  <!-- Row 6 -->
+  <rect x="0"  y="36" width="5" height="5" fill="#1B3A6B" rx="0.5"/>
+  <rect x="6"  y="36" width="5" height="5" fill="#1B3A6B" rx="0.5"/>
+  <rect x="12" y="36" width="5" height="5" fill="#1B3A6B" rx="0.5"/>
+  <rect x="18" y="36" width="5" height="5" fill="#00AECC" rx="0.5"/>
+  <rect x="24" y="36" width="5" height="5" fill="#3CB44A" rx="0.5"/>
+  <rect x="30" y="36" width="5" height="5" fill="#3CB44A" rx="0.5"/>
+  <rect x="36" y="36" width="5" height="5" fill="#3CB44A" rx="0.5"/>
+  <rect x="42" y="36" width="5" height="5" fill="#00AECC" rx="0.5"/>
+
+  <!-- Row 7 -->
+  <rect x="6"  y="42" width="5" height="5" fill="#1B3A6B" rx="0.5"/>
+  <rect x="12" y="42" width="5" height="5" fill="#1B3A6B" rx="0.5"/>
+  <rect x="18" y="42" width="5" height="5" fill="#00AECC" rx="0.5"/>
+  <rect x="24" y="42" width="5" height="5" fill="#3CB44A" rx="0.5"/>
+  <rect x="30" y="42" width="5" height="5" fill="#3CB44A" rx="0.5"/>
+  <rect x="36" y="42" width="5" height="5" fill="#3CB44A" rx="0.5"/>
+
+  <!-- Row 8 -->
+  <rect x="12" y="48" width="5" height="5" fill="#1B3A6B" rx="0.5"/>
+  <rect x="18" y="48" width="5" height="5" fill="#00AECC" rx="0.5"/>
+  <rect x="24" y="48" width="5" height="5" fill="#3CB44A" rx="0.5"/>
+  <rect x="30" y="48" width="5" height="5" fill="#3CB44A" rx="0.5"/>
+
+  <!-- Row 9 -->
+  <rect x="18" y="54" width="5" height="5" fill="#00AECC" rx="0.5"/>
+  <rect x="24" y="54" width="5" height="5" fill="#3CB44A" rx="0.5"/>
+  <rect x="30" y="54" width="5" height="5" fill="#3CB44A" rx="0.5"/>
+
+  <!-- Row 10 -->
+  <rect x="18" y="60" width="5" height="5" fill="#00AECC" rx="0.5"/>
+  <rect x="24" y="60" width="5" height="5" fill="#3CB44A" rx="0.5"/>
+
+  <!-- Row 11 – cape -->
+  <rect x="24" y="66" width="5" height="5" fill="#3CB44A" rx="0.5"/>
+
+  <!-- ═══ TEXT ═══ -->
+  <!-- "smart" in navy blue -->
+  <text x="64" y="34" font-family="Arial Black, Arial, Helvetica, sans-serif"
+        font-size="24" font-weight="900" fill="#1B3A6B" letter-spacing="-0.5">smart</text>
+  <!-- "africa" in orange -->
+  <text x="64" y="60" font-family="Arial Black, Arial, Helvetica, sans-serif"
+        font-size="24" font-weight="900" fill="#F7941D" letter-spacing="-0.5">africa</text>
+  <!-- tagline -->
+  <text x="64" y="73" font-family="Arial, Helvetica, sans-serif"
+        font-size="7" fill="#888888" letter-spacing="0.8">CONNECT.INNOVATE.TRANSFORM.</text>
 </svg>
