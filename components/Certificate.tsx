@@ -12,6 +12,8 @@ interface Props {
   data: CertificateData;
   scale?: number;
   id?: string;
+  saLogo?: string;
+  sadaLogo?: string;
 }
 
 // A4 landscape at 96 dpi
@@ -171,7 +173,7 @@ function CertSeal({
 }
 
 // ── Main Certificate ──────────────────────────────────────────────────────────
-export default function Certificate({ data, scale = 1, id = 'certificate-render' }: Props) {
+export default function Certificate({ data, scale = 1, id = 'certificate-render', saLogo = '/logos/smart-africa.svg', sadaLogo = '/logos/sada.svg' }: Props) {
   const lang = data.language;
   const ui = UI_LABELS[lang];
   const sealLabel = SEAL_LABELS[data.type][lang];
@@ -245,7 +247,7 @@ export default function Certificate({ data, scale = 1, id = 'certificate-render'
           {/* Smart Africa logo */}
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src="/logos/smart-africa.svg"
+            src={saLogo}
             alt="Smart Africa"
             style={{ height: 68, objectFit: 'contain' }}
           />
@@ -254,7 +256,7 @@ export default function Certificate({ data, scale = 1, id = 'certificate-render'
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4 }}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src="/logos/sada.svg"
+              src={sadaLogo}
               alt="Smart Africa Digital Academy"
               style={{ height: 42, objectFit: 'contain' }}
             />
