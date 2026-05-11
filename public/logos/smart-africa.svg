@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 70" width="220" height="70">
+  <!-- Africa continent silhouette -->
+  <g transform="translate(4, 4)">
+    <path d="M30,6 C33,4 37,3 41,4 C45,5 48,7 51,10 C53,13 53,16 55,19 C57,22 60,23 61,26 C62,29 60,32 61,35 C62,38 65,40 65,43 C65,46 62,48 61,51 C60,54 60,57 57,59 C54,61 50,62 46,62 C42,62 38,60 35,57 C32,54 30,51 29,47 C28,43 29,39 28,35 C27,31 24,28 24,24 C24,20 26,17 27,14 C28,11 27,8 30,6 Z" fill="#00A651" opacity="0.9"/>
+    <!-- Horn of Africa detail -->
+    <path d="M55,19 C57,17 60,16 62,18 C63,21 60,23 59,25 C57,23 55,21 55,19 Z" fill="#00A651" opacity="0.9"/>
+  </g>
+
+  <!-- Smart Africa text -->
+  <text x="78" y="28" font-family="Arial, Helvetica, sans-serif" font-size="16" font-weight="800" fill="#0D2E5A" letter-spacing="1">SMART</text>
+  <text x="78" y="48" font-family="Arial, Helvetica, sans-serif" font-size="16" font-weight="800" fill="#0D2E5A" letter-spacing="1">AFRICA</text>
+
+  <!-- Tagline -->
+  <text x="78" y="62" font-family="Arial, Helvetica, sans-serif" font-size="7" fill="#555555" letter-spacing="0.5">TRANSFORMING AFRICA THROUGH ICT</text>
+
+  <!-- Decorative line -->
+  <line x1="78" y1="52" x2="215" y2="52" stroke="#00A651" stroke-width="1.5" opacity="0.4"/>
+</svg>
