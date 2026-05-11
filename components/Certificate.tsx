@@ -1,7 +1,12 @@
 'use client';
 
-import React from 'react';
-import { CertificateData, TYPE_LABELS, UI_LABELS } from '@/types/certificate';
+import React, { useMemo } from 'react';
+import {
+  CertificateData,
+  SEAL_LABELS,
+  SEAL_COLORS,
+  UI_LABELS,
+} from '@/types/certificate';
 
 interface Props {
   data: CertificateData;
@@ -9,17 +14,167 @@ interface Props {
   id?: string;
 }
 
-// A4 landscape at 96dpi
-const CERT_W = 1123;
-const CERT_H = 794;
+// A4 landscape at 96 dpi
+const W = 1123;
+const H = 794;
 
+// ── Pixel border settings ────────────────────────────────────────────────────
+const SQ = 10;   // square size px
+const GAP = 2;   // gap px
+const CELL = SQ + GAP;  // 12px per cell
+const BORDER_ROWS = 3;  // how many rows of squares on each edge
+const BORDER_THICK = BORDER_ROWS * CELL; // 36px
+
+// Deterministic colour for a given grid cell (x, y)
+function cellColor(col: number, row: number): string {
+  const n = Math.abs((col * 31337 + row * 1337 + col * row * 7 + col * 13 + row * 97)) % 100;
+  if (n < 6)  return '#1B3A6B'; // navy
+  if (n < 11) return '#00B0BE'; // teal
+  if (n < 15) return '#F7941D'; // orange
+  if (n < 40) return '#C8C8C8'; // light gray
+  if (n < 70) return '#AAAAAA'; // medium gray
+  return '#E5E5E5';             // very light gray
+}
+
+// ── PixelBorder ──────────────────────────────────────────────────────────────
+function PixelBorder() {
+  const rects: React.ReactNode[] = [];
+  const colsH = Math.ceil(W / CELL);
+  const rowsV = Math.ceil((H - 2 * BORDER_THICK) / CELL);
+
+  // Top + Bottom strips
+  for (let r = 0; r < BORDER_ROWS; r++) {
+    for (let c = 0; c < colsH; c++) {
+      const x = c * CELL;
+      // Top
+      rects.push(
+        <rect key={`t-${r}-${c}`} x={x} y={r * CELL} width={SQ} height={SQ} fill={cellColor(c, r)} rx={1} />
+      );
+      // Bottom
+      rects.push(
+        <rect
+          key={`b-${r}-${c}`}
+          x={x}
+          y={H - BORDER_THICK + r * CELL}
+          width={SQ}
+          height={SQ}
+          fill={cellColor(c, r + 100)}
+          rx={1}
+        />
+      );
+    }
+  }
+
+  // Left + Right strips (middle section only – no corner overlap)
+  for (let r = 0; r < rowsV; r++) {
+    for (let c = 0; c < BORDER_ROWS; c++) {
+      const y = BORDER_THICK + r * CELL;
+      // Left
+      rects.push(
+        <rect key={`l-${r}-${c}`} x={c * CELL} y={y} width={SQ} height={SQ} fill={cellColor(c + 200, r)} rx={1} />
+      );
+      // Right
+      rects.push(
+        <rect
+          key={`rr-${r}-${c}`}
+          x={W - BORDER_THICK + c * CELL}
+          y={y}
+          width={SQ}
+          height={SQ}
+          fill={cellColor(c + 300, r)}
+          rx={1}
+        />
+      );
+    }
+  }
+
+  return (
+    <svg
+      style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}
+      width={W}
+      height={H}
+    >
+      {rects}
+    </svg>
+  );
+}
+
+// ── Certificate type seal (top-right) ────────────────────────────────────────
+function CertSeal({
+  label,
+  customLabel,
+  type,
+}: {
+  label: string;
+  customLabel: string;
+  type: CertificateData['type'];
+}) {
+  const display = type === 'custom' ? customLabel.toUpperCase() : label;
+  const { ring, text, bg } = SEAL_COLORS[type];
+  const R = 44; // radius of outer circle
+  const cx = R + 4;
+  const cy = R + 4;
+  const size = (R + 4) * 2;
+
+  // Arc text "CERTIFICATE" on top
+  const arcR = R - 5;
+  const chars = 'CERTIFICATE'.split('');
+  const totalAngle = 160; // degrees
+  const startAngle = -90 - totalAngle / 2;
+
+  return (
+    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+      {/* Outer ring */}
+      <circle cx={cx} cy={cy} r={R} fill={bg} stroke={ring} strokeWidth={3} />
+      {/* Inner ring */}
+      <circle cx={cx} cy={cy} r={R - 8} fill="none" stroke={ring} strokeWidth={1} strokeDasharray="4 3" />
+      {/* Main type label */}
+      <text
+        x={cx}
+        y={cy + 6}
+        textAnchor="middle"
+        dominantBaseline="middle"
+        fontFamily="Arial, Helvetica, sans-serif"
+        fontSize={display.length > 9 ? 9 : 11}
+        fontWeight="900"
+        fill={text}
+        letterSpacing={1}
+      >
+        {display}
+      </text>
+      {/* Arc "CERTIFICATE" text */}
+      {chars.map((ch, i) => {
+        const angle = startAngle + (totalAngle / (chars.length - 1)) * i;
+        const rad = (angle * Math.PI) / 180;
+        const x = cx + arcR * Math.cos(rad);
+        const y = cy + arcR * Math.sin(rad);
+        const rotate = angle + 90;
+        return (
+          <text
+            key={i}
+            x={x}
+            y={y}
+            textAnchor="middle"
+            dominantBaseline="middle"
+            fontFamily="Arial, Helvetica, sans-serif"
+            fontSize={7}
+            fontWeight="700"
+            fill={text}
+            transform={`rotate(${rotate}, ${x}, ${y})`}
+          >
+            {ch}
+          </text>
+        );
+      })}
+    </svg>
+  );
+}
+
+// ── Main Certificate ──────────────────────────────────────────────────────────
 export default function Certificate({ data, scale = 1, id = 'certificate-render' }: Props) {
   const lang = data.language;
   const ui = UI_LABELS[lang];
-  const typeLabel =
-    data.type === 'custom'
-      ? data.customTypeLabel.toUpperCase()
-      : TYPE_LABELS[data.type][lang];
+  const sealLabel = SEAL_LABELS[data.type][lang];
 
   const formatDate = (iso: string) => {
     if (!iso) return '';
@@ -34,70 +189,57 @@ export default function Certificate({ data, scale = 1, id = 'certificate-render'
     }
   };
 
+  // Padding inside the pixel border + teal line
+  const PAD = BORDER_THICK + 10; // 46px
+
   return (
     <div
       id={id}
       style={{
-        width: CERT_W,
-        height: CERT_H,
+        width: W,
+        height: H,
         transform: `scale(${scale})`,
         transformOrigin: 'top left',
         position: 'relative',
-        backgroundColor: '#FDFAF4',
+        backgroundColor: '#FFFFFF',
         boxSizing: 'border-box',
         overflow: 'hidden',
-        fontFamily: 'Georgia, "Times New Roman", serif',
+        fontFamily: 'Arial, Helvetica, sans-serif',
       }}
     >
-      {/* Background watermark – Africa map */}
-      <AfricaWatermark />
+      {/* Pixel mosaic border */}
+      <PixelBorder />
 
-      {/* Outer border */}
+      {/* Teal inner border line */}
       <div
         style={{
           position: 'absolute',
-          inset: 10,
-          border: '4px solid #C8A84B',
-          boxSizing: 'border-box',
-          pointerEvents: 'none',
-        }}
-      />
-      {/* Inner border */}
-      <div
-        style={{
-          position: 'absolute',
-          inset: 18,
-          border: '1.5px solid #C8A84B',
+          inset: BORDER_THICK,
+          border: '2px solid #00B0BE',
           boxSizing: 'border-box',
           pointerEvents: 'none',
         }}
       />
 
-      {/* Corner ornaments */}
-      {(['tl', 'tr', 'bl', 'br'] as const).map((pos) => (
-        <CornerOrnament key={pos} position={pos} />
-      ))}
-
-      {/* Main content area */}
+      {/* Content */}
       <div
         style={{
           position: 'absolute',
-          inset: 28,
+          inset: PAD,
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
-          padding: '14px 50px 10px',
-          gap: 0,
+          padding: '10px 30px 10px',
         }}
       >
-        {/* ── HEADER: logos + title ── */}
+        {/* ── HEADER ── */}
         <div
           style={{
             width: '100%',
             display: 'flex',
             justifyContent: 'space-between',
-            alignItems: 'center',
-            marginBottom: 10,
+            alignItems: 'flex-start',
+            marginBottom: 12,
           }}
         >
           {/* Smart Africa logo */}
@@ -105,82 +247,44 @@ export default function Certificate({ data, scale = 1, id = 'certificate-render'
           <img
             src="/logos/smart-africa.svg"
             alt="Smart Africa"
-            style={{ height: 58, objectFit: 'contain' }}
+            style={{ height: 70, objectFit: 'contain' }}
           />
 
-          {/* Central title */}
-          <div style={{ textAlign: 'center', flex: 1, padding: '0 20px' }}>
-            {/* Ornament */}
-            <div style={{ color: '#C8A84B', fontSize: 16, letterSpacing: 8, marginBottom: 2 }}>
-              ✦ ✦ ✦
-            </div>
-            <div
-              style={{
-                fontSize: 44,
-                fontWeight: 900,
-                color: '#0D2E5A',
-                letterSpacing: 10,
-                lineHeight: 1,
-                fontFamily: '"Georgia", serif',
-                textTransform: 'uppercase',
-              }}
-            >
-              {ui.certTitle}
-            </div>
-          </div>
-
-          {/* SADA logo */}
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src="/logos/sada.svg"
-            alt="Smart Africa Digital Academy"
-            style={{ height: 58, objectFit: 'contain' }}
+          {/* Certificate type seal */}
+          <CertSeal
+            label={sealLabel}
+            customLabel={data.customTypeLabel}
+            type={data.type}
           />
         </div>
 
-        {/* ── GOLD DIVIDER ── */}
-        <GoldDivider width="100%" />
-
-        {/* ── CERTIFICATE TYPE ── */}
+        {/* ── PRESENTED TO ── */}
         <div
           style={{
-            fontSize: 20,
-            fontWeight: 700,
-            color: '#C8A84B',
-            letterSpacing: 6,
-            marginTop: 10,
-            marginBottom: 6,
+            fontSize: 17,
+            fontWeight: 900,
+            color: '#1a1a1a',
+            letterSpacing: 1,
             textAlign: 'center',
-            fontFamily: '"Georgia", serif',
+            marginBottom: 12,
           }}
         >
-          {typeLabel}
-        </div>
-
-        {/* ── AWARDED TO ── */}
-        <div
-          style={{
-            fontSize: 12,
-            color: '#6B5A3A',
-            fontStyle: 'italic',
-            letterSpacing: 3,
-            marginBottom: 6,
-          }}
-        >
-          {ui.awardedTo}
+          {ui.presentedTo}
         </div>
 
         {/* ── RECIPIENT NAME ── */}
         <div
           style={{
-            fontSize: data.recipientName.length > 30 ? 34 : 42,
+            fontSize: data.recipientName.length > 35 ? 28 : 34,
             fontWeight: 700,
-            color: '#0D2E5A',
-            textAlign: 'center',
-            lineHeight: 1.15,
-            fontFamily: '"Georgia", serif',
             fontStyle: 'italic',
-            letterSpacing: 1,
+            color: '#1a1a1a',
+            textAlign: 'center',
+            lineHeight: 1.2,
+            paddingBottom: 6,
+            borderBottom: '1.5px solid #999',
+            width: '80%',
+            marginBottom: 14,
           }}
         >
           {data.recipientName || 'Nom du Bénéficiaire'}
@@ -188,201 +292,108 @@ export default function Certificate({ data, scale = 1, id = 'certificate-render'
 
         {/* Recipient title */}
         {data.recipientTitle && (
-          <div
-            style={{
-              fontSize: 12,
-              color: '#555',
-              fontStyle: 'italic',
-              marginTop: 4,
-              letterSpacing: 1,
-            }}
-          >
+          <div style={{ fontSize: 12, color: '#555', fontStyle: 'italic', marginBottom: 8 }}>
             {data.recipientTitle}
           </div>
         )}
 
-        {/* ── BODY TEXT ── */}
-        <div
-          style={{
-            fontSize: 13,
-            color: '#333',
-            textAlign: 'center',
-            lineHeight: 1.75,
-            maxWidth: 720,
-            marginTop: 10,
-            marginBottom: 8,
-            fontFamily: '"Georgia", serif',
-          }}
-        >
-          {data.bodyText}
-        </div>
+        {/* ── INTRO TEXT ── */}
+        {data.introText && (
+          <div
+            style={{
+              fontSize: 14,
+              color: '#333',
+              textAlign: 'center',
+              lineHeight: 1.6,
+              marginBottom: 6,
+            }}
+          >
+            {data.introText}
+          </div>
+        )}
 
-        {/* ── SMALL GOLD DIVIDER ── */}
-        <GoldDivider width="55%" />
+        {/* ── SUBJECT / COURSE NAME ── */}
+        {data.subjectName && (
+          <div
+            style={{
+              fontSize: 20,
+              fontWeight: 900,
+              color: '#1a1a1a',
+              textAlign: 'center',
+              marginBottom: 12,
+            }}
+          >
+            {data.subjectName}
+          </div>
+        )}
 
-        {/* ── BOTTOM ROW: date/number + signatures ── */}
+        {/* ── DATE ── */}
+        {data.showDate && data.date && (
+          <div style={{ textAlign: 'center', fontSize: 13, color: '#444', marginBottom: 4 }}>
+            <div style={{ color: '#666', fontSize: 12 }}>{ui.issuedOn}</div>
+            <div style={{ fontWeight: 600 }}>{formatDate(data.date)}</div>
+          </div>
+        )}
+
+        {/* Certificate number */}
+        {data.showCertificateNumber && data.certificateNumber && (
+          <div style={{ fontSize: 10, color: '#999', marginTop: 2 }}>
+            N° {data.certificateNumber}
+          </div>
+        )}
+
+        {/* Spacer */}
+        <div style={{ flex: 1 }} />
+
+        {/* ── BOTTOM ROW ── */}
         <div
           style={{
             width: '100%',
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'flex-end',
-            marginTop: 10,
-            flex: 1,
           }}
         >
-          {/* Left – date / cert number */}
-          <div style={{ fontSize: 11, color: '#555', minWidth: 160 }}>
-            {data.showDate && data.date && (
-              <div>
-                <span style={{ fontStyle: 'italic' }}>{data.city && `${data.city}, `}</span>
-                <span style={{ fontStyle: 'italic' }}>{formatDate(data.date)}</span>
+          {/* Signatories */}
+          <div style={{ display: 'flex', gap: 40, alignItems: 'flex-end' }}>
+            {data.signatories.map((sig) => (
+              <div key={sig.id} style={{ minWidth: 130 }}>
+                {/* Signature image */}
+                {sig.signature ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={sig.signature}
+                    alt="Signature"
+                    style={{ height: 44, objectFit: 'contain', display: 'block', marginBottom: 2 }}
+                  />
+                ) : (
+                  <div style={{ height: 44 }} />
+                )}
+                <div style={{ borderTop: '1.5px solid #333', paddingTop: 3 }}>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: '#1a1a1a' }}>{sig.name}</div>
+                  <div style={{ fontSize: 10, fontStyle: 'italic', color: '#555' }}>{sig.title}</div>
+                  <div style={{ fontSize: 10, color: '#666' }}>{sig.organization}</div>
+                </div>
               </div>
-            )}
-            {data.showCertificateNumber && data.certificateNumber && (
-              <div style={{ marginTop: 4, color: '#888', fontSize: 10 }}>
-                {ui.certNumber} {data.certificateNumber}
-              </div>
-            )}
+            ))}
           </div>
 
-          {/* Center – partner logos */}
+          {/* Partner logos */}
           {data.partnerLogos.length > 0 && (
-            <div
-              style={{
-                display: 'flex',
-                gap: 16,
-                alignItems: 'center',
-                justifyContent: 'center',
-                flexWrap: 'wrap',
-              }}
-            >
+            <div style={{ display: 'flex', gap: 14, alignItems: 'center', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
               {data.partnerLogos.map((logo) => (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
                   key={logo.id}
                   src={logo.url}
                   alt={logo.name}
-                  style={{ height: 38, objectFit: 'contain', maxWidth: 90 }}
+                  style={{ height: 40, objectFit: 'contain', maxWidth: 100 }}
                 />
               ))}
             </div>
           )}
-
-          {/* Right – signatories */}
-          <div style={{ display: 'flex', gap: 50, alignItems: 'flex-end' }}>
-            {data.signatories.map((sig) => (
-              <div key={sig.id} style={{ textAlign: 'center', minWidth: 130 }}>
-                {sig.signature ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={sig.signature}
-                    alt="Signature"
-                    style={{ height: 46, marginBottom: 2, objectFit: 'contain' }}
-                  />
-                ) : (
-                  <div style={{ height: 46, marginBottom: 2 }} />
-                )}
-                <div
-                  style={{
-                    borderTop: '1.5px solid #C8A84B',
-                    paddingTop: 4,
-                  }}
-                >
-                  <div
-                    style={{
-                      fontSize: 11,
-                      fontWeight: 700,
-                      color: '#0D2E5A',
-                      fontFamily: '"Georgia", serif',
-                    }}
-                  >
-                    {sig.name}
-                  </div>
-                  <div style={{ fontSize: 10, color: '#666', fontStyle: 'italic' }}>
-                    {sig.title}
-                  </div>
-                  <div style={{ fontSize: 10, color: '#888' }}>{sig.organization}</div>
-                </div>
-              </div>
-            ))}
-          </div>
         </div>
       </div>
     </div>
-  );
-}
-
-// ── Sub-components ────────────────────────────────────────
-
-function GoldDivider({ width }: { width: string }) {
-  return (
-    <div
-      style={{
-        width,
-        height: 1.5,
-        background: 'linear-gradient(to right, transparent 0%, #C8A84B 20%, #C8A84B 80%, transparent 100%)',
-        margin: '4px 0',
-        flexShrink: 0,
-      }}
-    />
-  );
-}
-
-type Corner = 'tl' | 'tr' | 'bl' | 'br';
-function CornerOrnament({ position }: { position: Corner }) {
-  const size = 32;
-  const offset = 5;
-  const pos: React.CSSProperties = {
-    position: 'absolute',
-    width: size,
-    height: size,
-    pointerEvents: 'none',
-  };
-
-  const coords: Record<Corner, React.CSSProperties> = {
-    tl: { top: offset, left: offset },
-    tr: { top: offset, right: offset },
-    bl: { bottom: offset, left: offset },
-    br: { bottom: offset, right: offset },
-  };
-
-  const rotations: Record<Corner, number> = { tl: 0, tr: 90, bl: 270, br: 180 };
-
-  return (
-    <svg
-      style={{ ...pos, ...coords[position], transform: `rotate(${rotations[position]}deg)` }}
-      viewBox="0 0 32 32"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      <path d="M4 4 L4 14 M4 4 L14 4" stroke="#C8A84B" strokeWidth="2" strokeLinecap="round" />
-      <circle cx="4" cy="4" r="2.5" fill="#C8A84B" />
-      <circle cx="16" cy="16" r="1.5" fill="#C8A84B" opacity="0.5" />
-    </svg>
-  );
-}
-
-function AfricaWatermark() {
-  return (
-    <svg
-      style={{
-        position: 'absolute',
-        right: 40,
-        top: '50%',
-        transform: 'translateY(-50%)',
-        width: 280,
-        height: 340,
-        opacity: 0.04,
-        pointerEvents: 'none',
-      }}
-      viewBox="0 0 200 250"
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      <path
-        d="M 100,8 C 115,8 130,12 142,20 C 154,28 162,40 165,53 C 168,66 163,77 167,89 C 171,101 180,109 180,122 C 180,135 171,145 167,157 C 163,169 163,181 156,191 C 149,201 138,207 128,213 C 118,219 108,222 98,224 C 88,226 78,224 68,218 C 58,212 50,203 44,193 C 38,183 35,172 34,160 C 33,148 36,136 34,124 C 32,112 26,102 26,90 C 26,78 32,68 34,56 C 36,44 33,33 38,23 C 43,13 53,8 66,6 C 78,4 90,6 100,8 Z M 155,52 C 162,45 172,43 176,50 C 178,55 173,62 167,65 C 162,60 157,56 155,52 Z"
-        fill="#0D2E5A"
-      />
-    </svg>
   );
 }

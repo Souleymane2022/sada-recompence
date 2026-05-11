@@ -1,8 +1,8 @@
 export type CertificateType =
-  | 'formation'
+  | 'training'
   | 'excellence'
-  | 'reconnaissance'
-  | 'partenariat'
+  | 'recognition'
+  | 'partnership'
   | 'appreciation'
   | 'participation'
   | 'achievement'
@@ -30,9 +30,9 @@ export interface CertificateData {
   language: Language;
   recipientName: string;
   recipientTitle: string;
-  bodyText: string;
+  introText: string;      // "for completing Smart Africa Digital Academy Course on"
+  subjectName: string;    // "Artificial Intelligence Essentials"  ← bold field
   date: string;
-  city: string;
   showDate: boolean;
   signatories: Signatory[];
   partnerLogos: PartnerLogo[];
@@ -40,61 +40,57 @@ export interface CertificateData {
   showCertificateNumber: boolean;
 }
 
-export const DEFAULT_BODY_TEXTS: Record<CertificateType, Record<Language, string>> = {
-  formation: {
-    fr: "pour avoir complété avec succès la formation dispensée par la Smart Africa Digital Academy, démontrant ainsi son engagement envers l'excellence numérique en Afrique.",
-    en: "for successfully completing the training program delivered by the Smart Africa Digital Academy, demonstrating commitment to digital excellence across Africa.",
-  },
-  excellence: {
-    fr: "en reconnaissance de son excellence exceptionnelle et de sa contribution remarquable au développement du numérique en Afrique.",
-    en: "in recognition of exceptional excellence and remarkable contribution to digital development across Africa.",
-  },
-  reconnaissance: {
-    fr: "en reconnaissance de son engagement exemplaire et de sa contribution significative à la transformation numérique de l'Afrique.",
-    en: "in recognition of exemplary commitment and significant contribution to Africa's digital transformation.",
-  },
-  partenariat: {
-    fr: "pour son partenariat stratégique et son soutien indéfectible aux initiatives de transformation numérique portées par Smart Africa et la Smart Africa Digital Academy.",
-    en: "for strategic partnership and unwavering support to digital transformation initiatives led by Smart Africa and the Smart Africa Digital Academy.",
-  },
-  appreciation: {
-    fr: "en signe d'appréciation pour son précieux soutien et son dévouement au service du développement numérique de l'Afrique.",
-    en: "as a token of appreciation for valuable support and dedication to the service of Africa's digital development.",
-  },
-  participation: {
-    fr: "pour sa participation active et enrichissante à l'événement organisé par Smart Africa et la Smart Africa Digital Academy.",
-    en: "for active and enriching participation in the event organized by Smart Africa and the Smart Africa Digital Academy.",
-  },
-  achievement: {
-    fr: "pour ses accomplissements remarquables et sa contribution exceptionnelle à l'avancement de l'agenda numérique africain.",
-    en: "for remarkable achievements and exceptional contribution to the advancement of the African digital agenda.",
-  },
-  custom: {
-    fr: "",
-    en: "",
-  },
-};
+// ── Labels ─────────────────────────────────────────────────────────────────
 
-export const TYPE_LABELS: Record<CertificateType, Record<Language, string>> = {
-  formation: { fr: "DE FORMATION", en: "OF TRAINING" },
-  excellence: { fr: "D'EXCELLENCE", en: "OF EXCELLENCE" },
-  reconnaissance: { fr: "DE RECONNAISSANCE", en: "OF RECOGNITION" },
-  partenariat: { fr: "DE PARTENARIAT", en: "OF PARTNERSHIP" },
-  appreciation: { fr: "D'APPRÉCIATION", en: "OF APPRECIATION" },
-  participation: { fr: "DE PARTICIPATION", en: "OF PARTICIPATION" },
-  achievement: { fr: "D'ACCOMPLISSEMENT", en: "OF ACHIEVEMENT" },
-  custom: { fr: "", en: "" },
+export const SEAL_LABELS: Record<CertificateType, Record<Language, string>> = {
+  training:      { fr: 'FORMATION',     en: 'TRAINING' },
+  excellence:    { fr: 'EXCELLENCE',    en: 'EXCELLENCE' },
+  recognition:   { fr: 'RECOGNITION',  en: 'RECOGNITION' },
+  partnership:   { fr: 'PARTENARIAT',  en: 'PARTNERSHIP' },
+  appreciation:  { fr: 'APPRÉCIATION', en: 'APPRECIATION' },
+  participation: { fr: 'PARTICIPATION',en: 'PARTICIPATION' },
+  achievement:   { fr: 'ACHIEVEMENT',  en: 'ACHIEVEMENT' },
+  custom:        { fr: '',             en: '' },
 };
 
 export const UI_LABELS = {
   fr: {
-    certTitle: "CERTIFICAT",
-    awardedTo: "EST DÉCERNÉ À",
-    certNumber: "N°",
+    certTitle:   'CERTIFICAT',
+    presentedTo: 'CE CERTIFICAT EST DÉCERNÉ À',
+    issuedOn:    'Certificat délivré le',
   },
   en: {
-    certTitle: "CERTIFICATE",
-    awardedTo: "IS HEREBY AWARDED TO",
-    certNumber: "No.",
+    certTitle:   'CERTIFICATE',
+    presentedTo: 'THIS CERTIFICATE IS PRESENTED TO',
+    issuedOn:    'Certificate issued on',
   },
+};
+
+export const DEFAULT_INTRO: Record<CertificateType, Record<Language, string>> = {
+  training:      { fr: 'pour avoir complété avec succès le cours de la Smart Africa Digital Academy sur',
+                   en: 'for completing Smart Africa Digital Academy Course on' },
+  excellence:    { fr: "en reconnaissance de l'excellence dans",
+                   en: 'in recognition of excellence in' },
+  recognition:   { fr: 'en reconnaissance de sa contribution remarquable à',
+                   en: 'in recognition of outstanding contribution to' },
+  partnership:   { fr: 'en reconnaissance du précieux partenariat avec',
+                   en: 'in recognition of the valued partnership with' },
+  appreciation:  { fr: 'en signe d\'appréciation pour sa contribution à',
+                   en: 'in appreciation for contributions to' },
+  participation: { fr: 'pour sa participation active à',
+                   en: 'for active participation in' },
+  achievement:   { fr: 'pour ses accomplissements remarquables en matière de',
+                   en: 'for remarkable achievements in' },
+  custom:        { fr: '', en: '' },
+};
+
+export const SEAL_COLORS: Record<CertificateType, { ring: string; text: string; bg: string }> = {
+  training:      { ring: '#8B6914', text: '#3A2800', bg: '#FFF8E7' },
+  excellence:    { ring: '#C8A84B', text: '#5A3A00', bg: '#FFFBF0' },
+  recognition:   { ring: '#1B3A6B', text: '#0D1F3C', bg: '#EFF4FF' },
+  partnership:   { ring: '#00A651', text: '#004020', bg: '#EDFFF5' },
+  appreciation:  { ring: '#9B59B6', text: '#4A1060', bg: '#F8EEFF' },
+  participation: { ring: '#2980B9', text: '#0D3A5C', bg: '#EBF5FF' },
+  achievement:   { ring: '#E74C3C', text: '#6B1010', bg: '#FFF0EF' },
+  custom:        { ring: '#555555', text: '#222222', bg: '#F5F5F5' },
 };
