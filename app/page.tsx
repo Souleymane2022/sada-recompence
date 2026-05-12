@@ -1,5 +1,10 @@
 import CertificateGenerator from '@/components/CertificateGenerator';
+import LoginGate from '@/components/LoginGate';
 
 export default function Home() {
-  return <CertificateGenerator />;
+  return (
+    <LoginGate>
+      <CertificateGenerator />
+    </LoginGate>
+  );
 }

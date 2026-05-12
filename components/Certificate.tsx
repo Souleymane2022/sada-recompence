@@ -1,11 +1,12 @@
 'use client';
 
-import React, { useMemo } from 'react';
+import React from 'react';
 import {
   CertificateData,
   SEAL_LABELS,
   SEAL_COLORS,
   UI_LABELS,
+  DEFAULT_INTRO,
 } from '@/types/certificate';
 
 interface Props {
@@ -16,77 +17,84 @@ interface Props {
   sadaLogo?: string;
 }
 
-// A4 landscape at 96 dpi
 const W = 1123;
 const H = 794;
 
-// ── Pixel border settings ────────────────────────────────────────────────────
-const SQ = 10;   // square size px
-const GAP = 2;   // gap px
-const CELL = SQ + GAP;  // 12px per cell
-const BORDER_ROWS = 3;  // how many rows of squares on each edge
-const BORDER_THICK = BORDER_ROWS * CELL; // 36px
+const SQ = 6;
+const GAP = 2;
+const CELL = SQ + GAP; // 8px
 
-// Deterministic colour for a given grid cell (x, y)
-function cellColor(col: number, row: number): string {
-  const n = Math.abs((col * 31337 + row * 1337 + col * row * 7 + col * 13 + row * 97)) % 100;
-  if (n < 6)  return '#1B3A6B'; // navy
-  if (n < 11) return '#00B0BE'; // teal
-  if (n < 15) return '#F7941D'; // orange
-  if (n < 40) return '#C8C8C8'; // light gray
-  if (n < 70) return '#AAAAAA'; // medium gray
-  return '#E5E5E5';             // very light gray
+function cellColor(col: number, row: number): string | null {
+  const n = Math.abs(Math.sin(col * 12.9898 + row * 78.233) * 43758.5453) % 1;
+  if (n < 0.50) return null; 
+
+  if (n < 0.65) return '#00B0BE'; // teal
+  if (n < 0.75) return '#1B3A6B'; // navy
+  if (n < 0.85) return '#F7941D'; // orange
+  if (n < 0.95) return '#D1D5DB'; // gray
+  return '#F3F4F6'; // light gray
 }
 
-// ── PixelBorder ──────────────────────────────────────────────────────────────
 function PixelBorder() {
   const rects: React.ReactNode[] = [];
   const colsH = Math.ceil(W / CELL);
-  const rowsV = Math.ceil((H - 2 * BORDER_THICK) / CELL);
+  const rowsV = Math.ceil(H / CELL);
 
-  // Top + Bottom strips
-  for (let r = 0; r < BORDER_ROWS; r++) {
+  // Outer thin teal line
+  rects.push(
+    <rect key="outer-line" x={10} y={10} width={W - 20} height={H - 20} fill="none" stroke="#00B0BE" strokeWidth={1} />
+  );
+
+  // Inner thin teal line
+  rects.push(
+    <rect key="inner-line" x={50} y={50} width={W - 100} height={H - 100} fill="none" stroke="#00B0BE" strokeWidth={0.8} />
+  );
+
+  const OFFSET = 15;
+  const ROWS = 4;
+  const OPACITY = 0.8;
+
+  // Top
+  for (let r = 0; r < ROWS; r++) {
     for (let c = 0; c < colsH; c++) {
+      const color = cellColor(c, r);
       const x = c * CELL;
-      // Top
-      rects.push(
-        <rect key={`t-${r}-${c}`} x={x} y={r * CELL} width={SQ} height={SQ} fill={cellColor(c, r)} rx={1} />
-      );
-      // Bottom
-      rects.push(
-        <rect
-          key={`b-${r}-${c}`}
-          x={x}
-          y={H - BORDER_THICK + r * CELL}
-          width={SQ}
-          height={SQ}
-          fill={cellColor(c, r + 100)}
-          rx={1}
-        />
-      );
+      if (color && x > 12 && x < W - 12) {
+        rects.push(<rect key={`t-${r}-${c}`} x={x} y={OFFSET + r * CELL} width={SQ} height={SQ} fill={color} fillOpacity={OPACITY} rx={0.5} />);
+      }
     }
   }
 
-  // Left + Right strips (middle section only – no corner overlap)
+  // Bottom
+  for (let r = 0; r < ROWS; r++) {
+    for (let c = 0; c < colsH; c++) {
+      const color = cellColor(c, r + 100);
+      const x = c * CELL;
+      if (color && x > 12 && x < W - 12) {
+        rects.push(<rect key={`b-${r}-${c}`} x={x} y={H - OFFSET - (r + 1) * CELL + (CELL - SQ)} width={SQ} height={SQ} fill={color} fillOpacity={OPACITY} rx={0.5} />);
+      }
+    }
+  }
+
+  // Left
   for (let r = 0; r < rowsV; r++) {
-    for (let c = 0; c < BORDER_ROWS; c++) {
-      const y = BORDER_THICK + r * CELL;
-      // Left
-      rects.push(
-        <rect key={`l-${r}-${c}`} x={c * CELL} y={y} width={SQ} height={SQ} fill={cellColor(c + 200, r)} rx={1} />
-      );
-      // Right
-      rects.push(
-        <rect
-          key={`rr-${r}-${c}`}
-          x={W - BORDER_THICK + c * CELL}
-          y={y}
-          width={SQ}
-          height={SQ}
-          fill={cellColor(c + 300, r)}
-          rx={1}
-        />
-      );
+    for (let c = 0; c < ROWS; c++) {
+      const color = cellColor(c + 200, r);
+      const y = r * CELL;
+      if (color && y > 12 && y < H - 12) {
+        rects.push(<rect key={`l-${r}-${c}`} x={OFFSET + c * CELL} y={y} width={SQ} height={SQ} fill={color} fillOpacity={OPACITY} rx={0.5} />);
+      }
+    }
+  }
+
+  // Right
+  for (let r = 0; r < rowsV; r++) {
+    for (let c = 0; c < ROWS; c++) {
+      const color = cellColor(c + 300, r);
+      const y = r * CELL;
+      if (color && y > 12 && y < H - 12) {
+        rects.push(<rect key={`rr-${r}-${c}`} x={W - OFFSET - (c + 1) * CELL + (CELL - SQ)} y={y} width={SQ} height={SQ} fill={color} fillOpacity={OPACITY} rx={0.5} />);
+      }
     }
   }
 
@@ -101,7 +109,6 @@ function PixelBorder() {
   );
 }
 
-// ── Certificate type seal (top-right) ────────────────────────────────────────
 function CertSeal({
   label,
   customLabel,
@@ -113,40 +120,32 @@ function CertSeal({
 }) {
   const display = type === 'custom' ? customLabel.toUpperCase() : label;
   const { ring, text, bg } = SEAL_COLORS[type];
-  const R = 44; // radius of outer circle
-  const cx = R + 4;
-  const cy = R + 4;
-  const size = (R + 4) * 2;
+  const R = 50; 
+  const cx = R + 5;
+  const cy = R + 5;
+  const size = (R + 5) * 2;
 
-  // Arc text "CERTIFICATE" on top
-  const arcR = R - 5;
-  const chars = 'CERTIFICATE'.split('');
-  const totalAngle = 160; // degrees
-  const startAngle = -90 - totalAngle / 2;
+  const arcR = R - 8;
+  const chars = 'CERTIFICATE • SADA •'.split('');
+  const totalAngle = 360;
 
   return (
-    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
-      {/* Outer ring */}
-      <circle cx={cx} cy={cy} r={R} fill={bg} stroke={ring} strokeWidth={3} />
-      {/* Inner ring */}
-      <circle cx={cx} cy={cy} r={R - 8} fill="none" stroke={ring} strokeWidth={1} strokeDasharray="4 3" />
-      {/* Main type label */}
-      <text
-        x={cx}
-        y={cy + 6}
-        textAnchor="middle"
-        dominantBaseline="middle"
-        fontFamily="Arial, Helvetica, sans-serif"
-        fontSize={display.length > 9 ? 9 : 11}
-        fontWeight="900"
-        fill={text}
-        letterSpacing={1}
-      >
-        {display}
-      </text>
-      {/* Arc "CERTIFICATE" text */}
+    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} style={{ filter: 'drop-shadow(0 4px 6px rgba(0,0,0,0.1))' }}>
+      <defs>
+        <radialGradient id="sealGrad" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stopColor="#FFF" stopOpacity={0.3} />
+          <stop offset="100%" stopColor="#000" stopOpacity={0.05} />
+        </radialGradient>
+      </defs>
+      
+      <circle cx={cx} cy={cy} r={R} fill={ring} />
+      <circle cx={cx} cy={cy} r={R - 3} fill={bg} />
+      <circle cx={cx} cy={cy} r={R - 3} fill="url(#sealGrad)" />
+      
+      <circle cx={cx} cy={cy} r={R - 10} fill="none" stroke={ring} strokeWidth={0.5} strokeDasharray="1 2" />
+
       {chars.map((ch, i) => {
-        const angle = startAngle + (totalAngle / (chars.length - 1)) * i;
+        const angle = (totalAngle / chars.length) * i - 90;
         const rad = (angle * Math.PI) / 180;
         const x = cx + arcR * Math.cos(rad);
         const y = cy + arcR * Math.sin(rad);
@@ -158,22 +157,44 @@ function CertSeal({
             y={y}
             textAnchor="middle"
             dominantBaseline="middle"
-            fontFamily="Arial, Helvetica, sans-serif"
+            fontFamily="var(--font-montserrat), Arial"
             fontSize={7}
-            fontWeight="700"
-            fill={text}
+            fontWeight="800"
+            fill={ring}
             transform={`rotate(${rotate}, ${x}, ${y})`}
+            style={{ opacity: 0.8 }}
           >
             {ch}
           </text>
         );
       })}
+
+      <circle cx={cx} cy={cy} r={R - 18} fill="#FFF" stroke={ring} strokeWidth={1.5} />
+      
+      <text
+        x={cx}
+        y={cy + 4}
+        textAnchor="middle"
+        dominantBaseline="middle"
+        fontFamily="var(--font-montserrat), Arial"
+        fontSize={display.length > 9 ? 8 : 10}
+        fontWeight="900"
+        fill={text}
+        letterSpacing={0.5}
+      >
+        {display}
+      </text>
     </svg>
   );
 }
 
-// ── Main Certificate ──────────────────────────────────────────────────────────
-export default function Certificate({ data, scale = 1, id = 'certificate-render', saLogo = '/logos/smart-africa.svg', sadaLogo = '/logos/sada.svg' }: Props) {
+export default function Certificate({ 
+  data, 
+  scale = 1, 
+  id = 'certificate-render', 
+  saLogo = '/logos/official-smart-africa.png', 
+  sadaLogo = '/logos/official-sada.jpg' 
+}: Props) {
   const lang = data.language;
   const ui = UI_LABELS[lang];
   const sealLabel = SEAL_LABELS[data.type][lang];
@@ -191,9 +212,6 @@ export default function Certificate({ data, scale = 1, id = 'certificate-render'
     }
   };
 
-  // Padding inside the pixel border + teal line
-  const PAD = BORDER_THICK + 10; // 46px
-
   return (
     <div
       id={id}
@@ -206,200 +224,198 @@ export default function Certificate({ data, scale = 1, id = 'certificate-render'
         backgroundColor: '#FFFFFF',
         boxSizing: 'border-box',
         overflow: 'hidden',
-        fontFamily: 'Arial, Helvetica, sans-serif',
+        fontFamily: 'var(--font-inter), Arial, sans-serif',
       }}
     >
-      {/* Pixel mosaic border */}
       <PixelBorder />
 
-      {/* Teal inner border line */}
+      {/* ── HEADER ── */}
       <div
         style={{
           position: 'absolute',
-          inset: BORDER_THICK,
-          border: '2px solid #00B0BE',
-          boxSizing: 'border-box',
-          pointerEvents: 'none',
+          top: 70,
+          left: 100,
+          right: 100,
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'flex-start',
         }}
-      />
+      >
+        <img
+          src={saLogo}
+          alt="Smart Africa"
+          style={{ height: 85, objectFit: 'contain' }}
+          crossOrigin={saLogo?.startsWith('data:') ? undefined : 'anonymous'}
+        />
 
-      {/* Content */}
+        <img
+          src={sadaLogo}
+          alt="Smart Africa Digital Academy"
+          style={{ height: 52, objectFit: 'contain' }}
+          crossOrigin={sadaLogo?.startsWith('data:') ? undefined : 'anonymous'}
+        />
+      </div>
+
+      {/* ── BODY ── */}
       <div
         style={{
           position: 'absolute',
-          inset: PAD,
+          top: 200,
+          left: 100,
+          right: 100,
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
-          padding: '10px 30px 10px',
+          textAlign: 'center',
         }}
       >
-        {/* ── HEADER ── */}
         <div
           style={{
-            width: '100%',
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'flex-start',
-            marginBottom: 12,
-          }}
-        >
-          {/* Smart Africa logo */}
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={saLogo}
-            alt="Smart Africa"
-            style={{ height: 68, objectFit: 'contain' }}
-          />
-
-          {/* Right: SADA logo + seal stacked */}
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4 }}>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={sadaLogo}
-              alt="Smart Africa Digital Academy"
-              style={{ height: 42, objectFit: 'contain' }}
-            />
-            <CertSeal
-              label={sealLabel}
-              customLabel={data.customTypeLabel}
-              type={data.type}
-            />
-          </div>
-        </div>
-
-        {/* ── PRESENTED TO ── */}
-        <div
-          style={{
-            fontSize: 17,
-            fontWeight: 900,
-            color: '#1a1a1a',
-            letterSpacing: 1,
-            textAlign: 'center',
-            marginBottom: 12,
+            fontSize: 22,
+            fontWeight: 800,
+            color: '#1B3A6B',
+            letterSpacing: 2,
+            marginBottom: 35,
+            fontFamily: 'var(--font-montserrat), sans-serif',
+            textTransform: 'uppercase'
           }}
         >
           {ui.presentedTo}
         </div>
 
-        {/* ── RECIPIENT NAME ── */}
         <div
           style={{
-            fontSize: data.recipientName.length > 35 ? 28 : 34,
-            fontWeight: 700,
-            fontStyle: 'italic',
-            color: '#1a1a1a',
-            textAlign: 'center',
-            lineHeight: 1.2,
-            paddingBottom: 6,
-            borderBottom: '1.5px solid #999',
             width: '80%',
-            marginBottom: 14,
+            height: 75,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            borderBottom: '2px solid rgba(0, 176, 190, 0.2)',
+            marginBottom: data.recipientTitle ? 10 : 40,
           }}
         >
-          {data.recipientName || 'Nom du Bénéficiaire'}
+          <div
+            style={{
+              fontSize: data.recipientName.length > 30 ? 36 : 52,
+              fontWeight: 800,
+              fontStyle: 'italic',
+              color: '#1B3A6B',
+              lineHeight: 1,
+              fontFamily: 'var(--font-inter), sans-serif',
+              textAlign: 'center',
+            }}
+          >
+            {data.recipientName || 'Nom du Bénéficiaire'}
+          </div>
         </div>
 
-        {/* Recipient title */}
         {data.recipientTitle && (
-          <div style={{ fontSize: 12, color: '#555', fontStyle: 'italic', marginBottom: 8 }}>
+          <div
+            style={{
+              fontSize: 18,
+              fontWeight: 600,
+              color: '#4B5563',
+              marginBottom: 30,
+              fontFamily: 'var(--font-inter), sans-serif',
+              textTransform: 'uppercase',
+              letterSpacing: 1
+            }}
+          >
             {data.recipientTitle}
           </div>
         )}
 
-        {/* ── INTRO TEXT ── */}
-        {data.introText && (
-          <div
-            style={{
-              fontSize: 14,
-              color: '#333',
-              textAlign: 'center',
-              lineHeight: 1.6,
-              marginBottom: 6,
-            }}
-          >
-            {data.introText}
-          </div>
-        )}
-
-        {/* ── SUBJECT / COURSE NAME ── */}
-        {data.subjectName && (
-          <div
-            style={{
-              fontSize: 20,
-              fontWeight: 900,
-              color: '#1a1a1a',
-              textAlign: 'center',
-              marginBottom: 12,
-            }}
-          >
-            {data.subjectName}
-          </div>
-        )}
-
-        {/* ── DATE ── */}
-        {data.showDate && data.date && (
-          <div style={{ textAlign: 'center', fontSize: 13, color: '#444', marginBottom: 4 }}>
-            <div style={{ color: '#666', fontSize: 12 }}>{ui.issuedOn}</div>
-            <div style={{ fontWeight: 600 }}>{formatDate(data.date)}</div>
-          </div>
-        )}
-
-        {/* Certificate number */}
-        {data.showCertificateNumber && data.certificateNumber && (
-          <div style={{ fontSize: 10, color: '#999', marginTop: 2 }}>
-            N° {data.certificateNumber}
-          </div>
-        )}
-
-        {/* Spacer */}
-        <div style={{ flex: 1 }} />
-
-        {/* ── BOTTOM ROW ── */}
         <div
           style={{
-            width: '100%',
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'flex-end',
+            fontSize: 16,
+            color: '#4B5563',
+            lineHeight: 1.6,
+            marginBottom: 10,
+            maxWidth: '85%',
+            fontFamily: 'var(--font-inter), sans-serif',
           }}
         >
-          {/* Signatories */}
-          <div style={{ display: 'flex', gap: 40, alignItems: 'flex-end' }}>
-            {data.signatories.map((sig) => (
-              <div key={sig.id} style={{ minWidth: 130 }}>
-                {/* Signature image */}
-                {sig.signature ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={sig.signature}
-                    alt="Signature"
-                    style={{ height: 44, objectFit: 'contain', display: 'block', marginBottom: 2 }}
-                  />
-                ) : (
-                  <div style={{ height: 44 }} />
-                )}
-                <div style={{ borderTop: '1.5px solid #333', paddingTop: 3 }}>
-                  <div style={{ fontSize: 12, fontWeight: 700, color: '#1a1a1a' }}>{sig.name}</div>
-                  <div style={{ fontSize: 10, fontStyle: 'italic', color: '#555' }}>{sig.title}</div>
-                  <div style={{ fontSize: 10, color: '#666' }}>{sig.organization}</div>
-                </div>
+          {data.introText || DEFAULT_INTRO[data.type][data.language]}
+        </div>
+
+        <div
+          style={{
+            fontSize: 30,
+            fontWeight: 800,
+            color: '#1B3A6B',
+            marginBottom: 40,
+            fontFamily: 'var(--font-inter), sans-serif',
+          }}
+        >
+          {data.subjectName}
+        </div>
+      </div>
+
+      {/* ── SEAL (Center Bottom) ── */}
+      <div style={{ position: 'absolute', bottom: 150, left: '50%', transform: 'translateX(-50%)', zIndex: 10 }}>
+        <CertSeal
+          label={sealLabel}
+          customLabel={data.customTypeLabel}
+          type={data.type}
+        />
+      </div>
+
+      {/* ── FOOTER (Signatures & Date) ── */}
+      <div
+        style={{
+          position: 'absolute',
+          bottom: 70,
+          left: 100,
+          right: 100,
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'flex-end',
+        }}
+      >
+        {/* Signatories */}
+        <div style={{ display: 'flex', gap: 80, alignItems: 'flex-end' }}>
+          {data.signatories.map((sig) => (
+            <div key={sig.id} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+              {sig.signature && (
+                <img 
+                  src={sig.signature} 
+                  alt="Signature" 
+                  style={{ height: 60, marginBottom: 5 }} 
+                  crossOrigin={sig.signature.startsWith('data:') ? undefined : 'anonymous'} 
+                />
+              )}
+              <div style={{ width: 180, borderTop: '1px solid #1B3A6B', paddingTop: 8, textAlign: 'center' }}>
+                <div style={{ fontSize: 14, fontWeight: 700, color: '#1B3A6B' }}>{sig.name}</div>
+                <div style={{ fontSize: 11, color: '#6B7280', maxWidth: 180 }}>{sig.title}</div>
               </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Right Side: Date & Partner Logos */}
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 20 }}>
+          {data.showDate && data.date && (
+            <div style={{ textAlign: 'right' }}>
+              <div style={{ fontSize: 11, color: '#6B7280', marginBottom: 2 }}>{ui.issuedOn}</div>
+              <div style={{ fontSize: 14, fontWeight: 700, color: '#1B3A6B' }}>{formatDate(data.date)}</div>
+            </div>
+          )}
+          
+          <div style={{ display: 'flex', gap: 15, alignItems: 'center' }}>
+            {data.partnerLogos.map((logo) => (
+              <img
+                key={logo.id}
+                src={logo.url}
+                alt={logo.name}
+                style={{ height: 45, objectFit: 'contain' }}
+                crossOrigin={logo.url?.startsWith('data:') ? undefined : 'anonymous'}
+              />
             ))}
           </div>
 
-          {/* Partner logos */}
-          {data.partnerLogos.length > 0 && (
-            <div style={{ display: 'flex', gap: 14, alignItems: 'center', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
-              {data.partnerLogos.map((logo) => (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  key={logo.id}
-                  src={logo.url}
-                  alt={logo.name}
-                  style={{ height: 40, objectFit: 'contain', maxWidth: 100 }}
-                />
-              ))}
+          {data.showCertificateNumber && data.certificateNumber && (
+            <div style={{ fontSize: 10, color: '#9CA3AF', fontWeight: 600 }}>
+              ID: {data.certificateNumber}
             </div>
           )}
         </div>

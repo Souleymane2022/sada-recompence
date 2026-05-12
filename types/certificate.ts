@@ -85,12 +85,12 @@ export const DEFAULT_INTRO: Record<CertificateType, Record<Language, string>> = 
 };
 
 export const SEAL_COLORS: Record<CertificateType, { ring: string; text: string; bg: string }> = {
-  training:      { ring: '#8B6914', text: '#3A2800', bg: '#FFF8E7' },
-  excellence:    { ring: '#C8A84B', text: '#5A3A00', bg: '#FFFBF0' },
-  recognition:   { ring: '#1B3A6B', text: '#0D1F3C', bg: '#EFF4FF' },
-  partnership:   { ring: '#00A651', text: '#004020', bg: '#EDFFF5' },
-  appreciation:  { ring: '#9B59B6', text: '#4A1060', bg: '#F8EEFF' },
-  participation: { ring: '#2980B9', text: '#0D3A5C', bg: '#EBF5FF' },
-  achievement:   { ring: '#E74C3C', text: '#6B1010', bg: '#FFF0EF' },
-  custom:        { ring: '#555555', text: '#222222', bg: '#F5F5F5' },
+  training:      { ring: '#F59E0B', text: '#78350F', bg: '#FFFBEB' },
+  excellence:    { ring: '#0EA5E9', text: '#0369A1', bg: '#F0F9FF' },
+  recognition:   { ring: '#4F46E5', text: '#312E81', bg: '#EEF2FF' },
+  partnership:   { ring: '#10B981', text: '#064E3B', bg: '#ECFDF5' },
+  appreciation:  { ring: '#D946EF', text: '#701A75', bg: '#FDF4FF' },
+  participation: { ring: '#6366F1', text: '#312E81', bg: '#EEF2FF' },
+  achievement:   { ring: '#EF4444', text: '#7F1D1D', bg: '#FEF2F2' },
+  custom:        { ring: '#6B7280', text: '#111827', bg: '#F9FAFB' },
 };

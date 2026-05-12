@@ -2,6 +2,20 @@
 
 import React, { useRef } from 'react';
 import { useDropzone } from 'react-dropzone';
+import { motion, AnimatePresence } from 'framer-motion';
+import { 
+  Globe, 
+  Award, 
+  User, 
+  FileText, 
+  Calendar, 
+  Hash, 
+  PenTool, 
+  Image as ImageIcon,
+  Plus,
+  Trash2,
+  ChevronDown
+} from 'lucide-react';
 import {
   CertificateData,
   CertificateType,
@@ -57,17 +71,18 @@ export default function CertificateForm({ data, onChange }: Props) {
   const fr = data.language === 'fr';
 
   return (
-    <div className="flex flex-col gap-4 text-sm">
-
+    <div className="flex flex-col gap-6 text-sm pb-10">
       {/* Language */}
-      <Section title="Langue / Language">
-        <div className="flex gap-2">
+      <Section title="Langue / Language" icon={<Globe className="w-4 h-4" />}>
+        <div className="flex p-1 bg-slate-100 rounded-xl">
           {(['fr', 'en'] as Language[]).map((l) => (
             <button
               key={l}
               onClick={() => handleLanguageChange(l)}
-              className={`flex-1 py-2 rounded-lg border text-sm font-semibold transition-all ${
-                data.language === l ? 'bg-navy text-white border-navy' : 'bg-white text-navy border-gray-200 hover:border-navy'
+              className={`flex-1 py-2 px-3 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-2 ${
+                data.language === l 
+                  ? 'bg-white text-blue-600 shadow-sm' 
+                  : 'text-slate-500 hover:text-slate-700'
               }`}
             >
               {l === 'fr' ? '🇫🇷 Français' : '🇬🇧 English'}
@@ -77,159 +92,233 @@ export default function CertificateForm({ data, onChange }: Props) {
       </Section>
 
       {/* Certificate type */}
-      <Section title={fr ? 'Type de certificat' : 'Certificate type'}>
-        <div className="grid grid-cols-2 gap-1.5">
+      <Section title={fr ? 'Type de certificat' : 'Certificate type'} icon={<Award className="w-4 h-4" />}>
+        <div className="grid grid-cols-2 gap-2">
           {TYPE_OPTIONS.map(([type, label, icon]) => (
             <button
               key={type}
               onClick={() => handleTypeChange(type)}
-              className={`py-2 px-2 rounded-lg border text-xs font-medium transition-all flex items-center gap-1.5 ${
+              className={`py-2.5 px-3 rounded-xl border text-[11px] font-semibold transition-all flex items-center gap-2 ${
                 data.type === type
-                  ? 'border-[#1B3A6B] bg-[#EFF4FF] text-[#1B3A6B] font-bold'
-                  : 'bg-white text-gray-700 border-gray-200 hover:border-[#1B3A6B]'
+                  ? 'border-blue-500 bg-blue-50 text-blue-700 shadow-sm'
+                  : 'bg-white text-slate-600 border-slate-200 hover:border-blue-300'
               }`}
             >
-              <span>{icon}</span>
+              <span className="text-sm">{icon}</span>
               <span className="truncate">{label}</span>
             </button>
           ))}
         </div>
-        {data.type === 'custom' && (
-          <input
-            className="mt-2 field-input"
-            placeholder={fr ? 'Intitulé du badge (ex: INNOVATION)' : 'Badge label (e.g. INNOVATION)'}
-            value={data.customTypeLabel}
-            onChange={(e) => set({ customTypeLabel: e.target.value })}
-          />
-        )}
+        <AnimatePresence>
+          {data.type === 'custom' && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              className="overflow-hidden mt-3"
+            >
+              <input
+                id="custom-type-label"
+                name="customTypeLabel"
+                className="field-input"
+                placeholder={fr ? 'Intitulé (ex: INNOVATION)' : 'Label (e.g. INNOVATION)'}
+                value={data.customTypeLabel}
+                onChange={(e) => set({ customTypeLabel: e.target.value })}
+              />
+            </motion.div>
+          )}
+        </AnimatePresence>
       </Section>
 
       {/* Recipient */}
-      <Section title={fr ? 'Bénéficiaire' : 'Recipient'}>
-        <label className="field-label">{fr ? 'Nom complet *' : 'Full name *'}</label>
-        <input
-          className="field-input"
-          placeholder={fr ? 'Ex: Uwitonze Eric' : 'e.g. Uwitonze Eric'}
-          value={data.recipientName}
-          onChange={(e) => set({ recipientName: e.target.value })}
-        />
-        <label className="field-label mt-2">{fr ? 'Titre / Fonction (optionnel)' : 'Title / Role (optional)'}</label>
-        <input
-          className="field-input"
-          placeholder={fr ? 'Ex: Ministre, Directeur…' : 'e.g. Minister, Director…'}
-          value={data.recipientTitle}
-          onChange={(e) => set({ recipientTitle: e.target.value })}
-        />
-      </Section>
-
-      {/* Intro text + subject */}
-      <Section title={fr ? 'Contenu du certificat' : 'Certificate content'}>
-        <label className="field-label">{fr ? 'Texte d\'introduction' : 'Introduction text'}</label>
-        <textarea
-          className="field-input min-h-[64px] resize-y"
-          value={data.introText}
-          onChange={(e) => set({ introText: e.target.value })}
-        />
-        <label className="field-label mt-2">
-          {fr ? 'Nom du cours / sujet (en gras)' : 'Course / subject name (bold)'}
-        </label>
-        <input
-          className="field-input"
-          placeholder={fr ? 'Ex: Intelligence Artificielle Essentiels' : 'e.g. Artificial Intelligence Essentials'}
-          value={data.subjectName}
-          onChange={(e) => set({ subjectName: e.target.value })}
-        />
-      </Section>
-
-      {/* Date */}
-      <Section title={fr ? 'Date' : 'Date'}>
-        <div className="flex items-center gap-2 mb-2">
-          <input
-            type="checkbox"
-            id="show-date"
-            checked={data.showDate}
-            onChange={(e) => set({ showDate: e.target.checked })}
-          />
-          <label htmlFor="show-date" className="text-gray-600 text-xs">
-            {fr ? 'Afficher la date' : 'Show date'}
-          </label>
+      <Section title={fr ? 'Bénéficiaire' : 'Recipient'} icon={<User className="w-4 h-4" />}>
+        <div className="space-y-4">
+          <div>
+            <label htmlFor="recipient-name" className="field-label">{fr ? 'Nom complet *' : 'Full name *'}</label>
+            <input
+              id="recipient-name"
+              name="recipientName"
+              className="field-input"
+              placeholder={fr ? 'Ex: Uwitonze Eric' : 'e.g. Uwitonze Eric'}
+              value={data.recipientName}
+              onChange={(e) => set({ recipientName: e.target.value })}
+            />
+          </div>
+          <div>
+            <label htmlFor="recipient-title" className="field-label">{fr ? 'Titre / Fonction' : 'Title / Role'}</label>
+            <input
+              id="recipient-title"
+              name="recipientTitle"
+              className="field-input"
+              placeholder={fr ? 'Ex: Ministre, Directeur…' : 'e.g. Minister, Director…'}
+              value={data.recipientTitle}
+              onChange={(e) => set({ recipientTitle: e.target.value })}
+            />
+          </div>
         </div>
-        {data.showDate && (
-          <input
-            type="date"
-            className="field-input"
-            value={data.date}
-            onChange={(e) => set({ date: e.target.value })}
-          />
-        )}
       </Section>
 
-      {/* Certificate number */}
-      <Section title={fr ? 'Numéro de certificat' : 'Certificate number'}>
-        <div className="flex items-center gap-2 mb-2">
-          <input
-            type="checkbox"
-            id="show-num"
-            checked={data.showCertificateNumber}
-            onChange={(e) => set({ showCertificateNumber: e.target.checked })}
-          />
-          <label htmlFor="show-num" className="text-gray-600 text-xs">
-            {fr ? 'Afficher le numéro' : 'Show number'}
-          </label>
+      {/* Content */}
+      <Section title={fr ? 'Contenu' : 'Content'} icon={<FileText className="w-4 h-4" />}>
+        <div className="space-y-4">
+          <div>
+            <label htmlFor="intro-text" className="field-label">{fr ? 'Texte d\'introduction' : 'Introduction text'}</label>
+            <textarea
+              id="intro-text"
+              name="introText"
+              className="field-input min-h-[80px] resize-none"
+              value={data.introText}
+              onChange={(e) => set({ introText: e.target.value })}
+            />
+          </div>
+          <div>
+            <label htmlFor="subject-name" className="field-label">{fr ? 'Sujet (en gras)' : 'Subject (bold)'}</label>
+            <input
+              id="subject-name"
+              name="subjectName"
+              className="field-input"
+              placeholder={fr ? 'Ex: Intelligence Artificielle' : 'e.g. Artificial Intelligence'}
+              value={data.subjectName}
+              onChange={(e) => set({ subjectName: e.target.value })}
+            />
+          </div>
         </div>
-        {data.showCertificateNumber && (
-          <input
-            className="field-input"
-            placeholder="SADA-2025-001"
-            value={data.certificateNumber}
-            onChange={(e) => set({ certificateNumber: e.target.value })}
-          />
-        )}
       </Section>
+
+      {/* Date & Number */}
+      <div className="grid grid-cols-2 gap-4">
+        <Section title={fr ? 'Date' : 'Date'} icon={<Calendar className="w-4 h-4" />}>
+          <div className="space-y-3">
+            <div className="flex items-center gap-2 px-1">
+              <input
+                type="checkbox"
+                id="show-date"
+                name="showDate"
+                className="w-4 h-4 accent-blue-500 rounded border-slate-300"
+                checked={data.showDate}
+                onChange={(e) => set({ showDate: e.target.checked })}
+              />
+              <label htmlFor="show-date" className="text-slate-500 text-[11px] font-medium uppercase tracking-wider">
+                {fr ? 'Afficher' : 'Show'}
+              </label>
+            </div>
+            <AnimatePresence>
+              {data.showDate && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                >
+                  <input
+                    id="cert-date"
+                    name="date"
+                    type="date"
+                    className="field-input py-1.5"
+                    value={data.date}
+                    onChange={(e) => set({ date: e.target.value })}
+                  />
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+        </Section>
+
+        <Section title={fr ? 'Numéro' : 'Number'} icon={<Hash className="w-4 h-4" />}>
+          <div className="space-y-3">
+            <div className="flex items-center gap-2 px-1">
+              <input
+                type="checkbox"
+                id="show-num"
+                name="showCertificateNumber"
+                className="w-4 h-4 accent-blue-500 rounded border-slate-300"
+                checked={data.showCertificateNumber}
+                onChange={(e) => set({ showCertificateNumber: e.target.checked })}
+              />
+              <label htmlFor="show-num" className="text-slate-500 text-[11px] font-medium uppercase tracking-wider">
+                {fr ? 'Afficher' : 'Show'}
+              </label>
+            </div>
+            <AnimatePresence>
+              {data.showCertificateNumber && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                >
+                  <input
+                    id="cert-number"
+                    name="certificateNumber"
+                    className="field-input py-1.5"
+                    placeholder="SADA-001"
+                    value={data.certificateNumber}
+                    onChange={(e) => set({ certificateNumber: e.target.value })}
+                  />
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+        </Section>
+      </div>
 
       {/* Signatories */}
-      <Section title={fr ? 'Signataires' : 'Signatories'}>
-        {data.signatories.map((sig, idx) => (
-          <SignatoryCard
-            key={sig.id}
-            sig={sig}
-            index={idx}
-            fr={fr}
-            onChange={(partial) => updateSignatory(sig.id, partial)}
-            onRemove={() => removeSignatory(sig.id)}
-          />
-        ))}
-        <button
-          onClick={addSignatory}
-          className="mt-1 w-full py-2 border-2 border-dashed border-gray-300 rounded-lg text-gray-500 text-xs font-semibold hover:border-[#1B3A6B] hover:text-[#1B3A6B] transition-all"
-        >
-          + {fr ? 'Ajouter un signataire' : 'Add signatory'}
-        </button>
+      <Section title={fr ? 'Signataires' : 'Signatories'} icon={<PenTool className="w-4 h-4" />}>
+        <div className="space-y-3">
+          <AnimatePresence initial={false}>
+            {data.signatories.map((sig, idx) => (
+              <SignatoryCard
+                key={sig.id}
+                sig={sig}
+                index={idx}
+                fr={fr}
+                onChange={(partial) => updateSignatory(sig.id, partial)}
+                onRemove={() => removeSignatory(sig.id)}
+              />
+            ))}
+          </AnimatePresence>
+          <button
+            onClick={addSignatory}
+            className="w-full py-2.5 border-2 border-dashed border-slate-200 rounded-xl text-slate-400 text-xs font-bold hover:border-blue-400 hover:text-blue-500 hover:bg-blue-50/50 transition-all flex items-center justify-center gap-2"
+          >
+            <Plus className="w-4 h-4" />
+            {fr ? 'Ajouter un signataire' : 'Add signatory'}
+          </button>
+        </div>
       </Section>
 
       {/* Partner logos */}
-      <Section title={fr ? 'Logos partenaires (bas droite)' : 'Partner logos (bottom right)'}>
+      <Section title={fr ? 'Partenaires' : 'Partners'} icon={<ImageIcon className="w-4 h-4" />}>
         <LogoDropzone fr={fr} onAdd={(logo) => set({ partnerLogos: [...data.partnerLogos, logo] })} />
-        {data.partnerLogos.length > 0 && (
-          <div className="mt-3 flex flex-wrap gap-2">
-            {data.partnerLogos.map((logo) => (
-              <div key={logo.id} className="relative group">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={logo.url}
-                  alt={logo.name}
-                  className="h-10 w-auto object-contain border border-gray-100 rounded p-1 bg-white"
-                />
-                <button
-                  onClick={() => removePartnerLogo(logo.id)}
-                  className="absolute -top-2 -right-2 w-5 h-5 bg-red-500 text-white rounded-full text-xs hidden group-hover:flex items-center justify-center font-bold"
+        <AnimatePresence>
+          {data.partnerLogos.length > 0 && (
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="mt-4 flex flex-wrap gap-3"
+            >
+              {data.partnerLogos.map((logo) => (
+                <motion.div 
+                  key={logo.id} 
+                  layout
+                  initial={{ scale: 0.8, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  className="relative group"
                 >
-                  ×
-                </button>
-              </div>
-            ))}
-          </div>
-        )}
+                  <img
+                    src={logo.url}
+                    alt={logo.name}
+                    className="h-12 w-auto object-contain border border-slate-100 rounded-lg p-1.5 bg-white shadow-sm"
+                  />
+                  <button
+                    onClick={() => removePartnerLogo(logo.id)}
+                    className="absolute -top-2 -right-2 w-5 h-5 bg-red-500 text-white rounded-full text-xs flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-lg"
+                  >
+                    ×
+                  </button>
+                </motion.div>
+              ))}
+            </motion.div>
+          )}
+        </AnimatePresence>
       </Section>
     </div>
   );
@@ -237,14 +326,23 @@ export default function CertificateForm({ data, onChange }: Props) {
 
 // ── Sub-components ──────────────────────────────────────────────────────────
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
+function Section({ title, icon, children }: { title: string; icon: React.ReactNode; children: React.ReactNode }) {
   return (
-    <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4">
-      <h3 className="text-xs font-bold text-[#1B3A6B] uppercase tracking-widest mb-3 pb-2 border-b border-gray-100">
-        {title}
-      </h3>
+    <motion.div 
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="sidebar-card"
+    >
+      <div className="flex items-center gap-2 mb-4">
+        <div className="p-1.5 bg-blue-50 text-blue-600 rounded-lg">
+          {icon}
+        </div>
+        <h3 className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em]">
+          {title}
+        </h3>
+      </div>
       {children}
-    </div>
+    </motion.div>
   );
 }
 
@@ -266,55 +364,72 @@ function SignatoryCard({
   };
 
   return (
-    <div className="border border-gray-100 rounded-lg p-3 mb-2 bg-gray-50">
-      <div className="flex justify-between items-center mb-2">
-        <span className="text-xs font-bold text-[#1B3A6B]">
+    <motion.div 
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.95 }}
+      className="border border-slate-100 rounded-2xl p-4 bg-slate-50/50"
+    >
+      <div className="flex justify-between items-center mb-3">
+        <span className="text-[10px] font-black text-blue-600 uppercase tracking-widest">
           {fr ? `Signataire ${index + 1}` : `Signatory ${index + 1}`}
         </span>
-        <button onClick={onRemove} className="text-red-400 hover:text-red-600 text-xs">
-          {fr ? 'Supprimer' : 'Remove'}
+        <button onClick={onRemove} className="text-slate-300 hover:text-red-500 transition-colors p-1">
+          <Trash2 className="w-4 h-4" />
         </button>
       </div>
-      <input
-        className="field-input mb-1"
-        placeholder={fr ? 'Nom complet (ex: Mr. Lacina Koné)' : 'Full name (e.g. Mr. Lacina Koné)'}
-        value={sig.name}
-        onChange={(e) => onChange({ name: e.target.value })}
-      />
-      <input
-        className="field-input mb-1"
-        placeholder={fr ? 'Titre (ex: CEO, Directeur Général)' : 'Title (e.g. CEO, Director General)'}
-        value={sig.title}
-        onChange={(e) => onChange({ title: e.target.value })}
-      />
-      <input
-        className="field-input mb-2"
-        placeholder={fr ? 'Organisation' : 'Organization'}
-        value={sig.organization}
-        onChange={(e) => onChange({ organization: e.target.value })}
-      />
+      <div className="space-y-2">
+        <input
+          id={`sig-name-${sig.id}`}
+          name={`sig-name-${sig.id}`}
+          className="field-input py-1.5"
+          placeholder={fr ? 'Nom complet' : 'Full name'}
+          value={sig.name}
+          onChange={(e) => onChange({ name: e.target.value })}
+        />
+        <input
+          id={`sig-title-${sig.id}`}
+          name={`sig-title-${sig.id}`}
+          className="field-input py-1.5"
+          placeholder={fr ? 'Titre / Fonction' : 'Title / Role'}
+          value={sig.title}
+          onChange={(e) => onChange({ title: e.target.value })}
+        />
+        <input
+          id={`sig-org-${sig.id}`}
+          name={`sig-org-${sig.id}`}
+          className="field-input py-1.5"
+          placeholder={fr ? 'Organisation' : 'Organization'}
+          value={sig.organization}
+          onChange={(e) => onChange({ organization: e.target.value })}
+        />
 
-      {/* Signature upload */}
-      <button
-        onClick={() => sigInputRef.current?.click()}
-        className="py-1.5 px-3 border border-gray-300 rounded-lg text-gray-600 text-xs hover:border-[#1B3A6B] hover:text-[#1B3A6B] transition-all"
-      >
-        {sig.signature
-          ? fr ? '✓ Signature chargée – changer' : '✓ Signature loaded – change'
-          : fr ? '📝 Charger la signature (image)' : '📝 Upload signature (image)'}
-      </button>
-      {sig.signature && (
-        <div className="flex items-center gap-2 mt-1">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={sig.signature} alt="sig" className="h-8 object-contain" />
+        <div className="pt-2">
           <button
-            onClick={() => onChange({ signature: undefined })}
-            className="text-red-400 text-xs hover:text-red-600"
+            onClick={() => sigInputRef.current?.click()}
+            className={`w-full py-2 px-3 border border-slate-200 rounded-xl text-[11px] font-bold transition-all flex items-center justify-center gap-2 ${
+              sig.signature ? 'bg-green-50 text-green-600 border-green-200' : 'bg-white text-slate-500 hover:border-blue-300 hover:text-blue-600'
+            }`}
           >
-            {fr ? 'Retirer' : 'Remove'}
+            {sig.signature ? <PenTool className="w-3 h-3" /> : <ImageIcon className="w-3 h-3" />}
+            {sig.signature
+              ? fr ? 'Signature chargée' : 'Signature loaded'
+              : fr ? 'Charger la signature' : 'Upload signature'}
           </button>
+          
+          {sig.signature && (
+            <div className="flex items-center justify-between mt-2 px-1">
+              <img src={sig.signature} alt="sig" className="h-6 object-contain opacity-60" />
+              <button
+                onClick={() => onChange({ signature: undefined })}
+                className="text-[10px] font-bold text-red-400 hover:text-red-600"
+              >
+                {fr ? 'Supprimer' : 'Remove'}
+              </button>
+            </div>
+          )}
         </div>
-      )}
+      </div>
       <input
         ref={sigInputRef}
         type="file"
@@ -322,7 +437,7 @@ function SignatoryCard({
         className="hidden"
         onChange={handleSignatureUpload}
       />
-    </div>
+    </motion.div>
   );
 }
 
@@ -343,13 +458,17 @@ function LogoDropzone({ fr, onAdd }: { fr: boolean; onAdd: (logo: PartnerLogo) =
   return (
     <div
       {...getRootProps()}
-      className={`border-2 border-dashed rounded-xl p-4 text-center cursor-pointer transition-all ${
-        isDragActive ? 'border-[#1B3A6B] bg-blue-50' : 'border-gray-200 hover:border-[#1B3A6B] hover:bg-blue-50'
+      className={`border-2 border-dashed rounded-2xl p-6 text-center cursor-pointer transition-all ${
+        isDragActive ? 'border-blue-500 bg-blue-50' : 'border-slate-100 hover:border-blue-300 hover:bg-slate-50'
       }`}
     >
       <input {...getInputProps()} />
-      <div className="text-xl mb-1">🏢</div>
-      <p className="text-xs text-gray-500">
+      <div className="mb-2 flex justify-center">
+        <div className="p-3 bg-white rounded-full shadow-sm border border-slate-100">
+          <ImageIcon className={`w-6 h-6 ${isDragActive ? 'text-blue-500' : 'text-slate-300'}`} />
+        </div>
+      </div>
+      <p className="text-[11px] font-bold text-slate-500 leading-relaxed px-2">
         {isDragActive
           ? fr ? 'Déposez ici…' : 'Drop here…'
           : fr ? 'Glissez les logos ici, ou cliquez pour sélectionner' : 'Drag logos here, or click to select'}
