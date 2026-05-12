@@ -166,6 +166,99 @@ export default function CertificateGenerator() {
     }
   };
 
+  const csvInputRef = useRef<HTMLInputElement>(null);
+  const [bulkProgress, setBulkProgress] = useState<{ current: number; total: number } | null>(null);
+
+  const handleBulkCSV = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.name.endsWith('.xls') || file.name.endsWith('.xlsx')) {
+      alert("⚠️ Erreur : Le fichier doit être au format CSV.\n\nDans Excel, faites : Fichier > Enregistrer sous > 'CSV (séparateur: point-virgule) (*.csv)' ou 'CSV UTF-8'.");
+      if (csvInputRef.current) csvInputRef.current.value = '';
+      return;
+    }
+
+    const text = await file.text();
+    // Split by lines, handle both \r\n and \n
+    const lines = text.split(/\r?\n/).filter(l => l.trim().length > 0);
+    if (lines.length < 2) {
+      alert("Le fichier CSV doit contenir une ligne d'en-tête et au moins une ligne de données.");
+      if (csvInputRef.current) csvInputRef.current.value = '';
+      return;
+    }
+
+    // Detect separator (comma or semicolon)
+    const firstLine = lines[0];
+    const separator = firstLine.includes(';') ? ';' : ',';
+
+    // Skip header, parse rows
+    const rows = lines.slice(1).map(line => {
+      // Basic split handling quotes is complex, but for simple names/titles this is fine
+      const parts = line.split(separator).map(s => s.replace(/^"|"$/g, '').trim());
+      return { 
+        name: parts[0] || '', 
+        title: parts[1] || '', 
+        subject: parts[2] || '' 
+      };
+    }).filter(r => r.name); // only keep rows with at least a name
+
+    setBulkProgress({ current: 0, total: rows.length });
+    const originalScale = scale;
+    setScale(1);
+    
+    // Dynamically import JSZip to avoid bloating initial bundle
+    const JSZip = (await import('jszip')).default;
+    const { getPDFBlob } = await import('@/lib/exportCertificate');
+    const zip = new JSZip();
+
+    try {
+      for (let i = 0; i < rows.length; i++) {
+        const row = rows[i];
+        
+        // Update UI with new data
+        setData(prev => ({
+          ...prev,
+          recipientName: row.name || prev.recipientName,
+          recipientTitle: row.title || prev.recipientTitle,
+          subjectName: row.subject || prev.subjectName,
+        }));
+
+        // Wait for React to render the new text
+        await new Promise(resolve => setTimeout(resolve, 400));
+
+        const blob = await getPDFBlob('certificate-render');
+        
+        const slug = (row.name || `cert-${i}`)
+          .normalize('NFD')
+          .replace(/[\u0300-\u036f]/g, '')
+          .replace(/[^a-z0-9]/gi, '-')
+          .toLowerCase();
+          
+        zip.file(`certificat-sada-${slug}.pdf`, blob);
+        
+        setBulkProgress({ current: i + 1, total: rows.length });
+      }
+
+      setBulkProgress({ current: rows.length, total: rows.length }); // "Zipping..." state
+      const zipBlob = await zip.generateAsync({ type: 'blob' });
+      
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(zipBlob);
+      link.download = `certificats-sada-bulk.zip`;
+      link.click();
+
+    } catch (err) {
+      console.error('Bulk export failed:', err);
+      alert('Une erreur est survenue lors de la génération en masse.');
+    } finally {
+      setScale(originalScale);
+      setBulkProgress(null);
+      if (csvInputRef.current) csvInputRef.current.value = ''; // Reset input
+    }
+  };
+
+
   const saIsDefault   = saLogo.endsWith('.svg');
   const sadaIsDefault = sadaLogo.endsWith('.svg');
 
@@ -239,6 +332,40 @@ export default function CertificateGenerator() {
               <LogoUploadBox label="Smart Africa" current={saLogo} onChange={setSaLogo} />
               <LogoUploadBox label="SADA Digital Academy" current={sadaLogo} onChange={setSadaLogo} />
             </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ── BULK EXPORT PROGRESS MODAL ── */}
+      <AnimatePresence>
+        {bulkProgress && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/50 backdrop-blur-sm"
+          >
+            <motion.div
+              initial={{ scale: 0.9 }}
+              animate={{ scale: 1 }}
+              className="bg-white rounded-2xl p-8 shadow-2xl max-w-sm w-full text-center"
+            >
+              <h3 className="text-lg font-bold text-slate-800 mb-4">Génération en Masse</h3>
+              
+              <div className="w-full bg-slate-100 rounded-full h-3 mb-4 overflow-hidden">
+                <motion.div 
+                  className="bg-blue-600 h-full"
+                  initial={{ width: 0 }}
+                  animate={{ width: `${(bulkProgress.current / bulkProgress.total) * 100}%` }}
+                />
+              </div>
+
+              <p className="text-sm text-slate-500 font-medium">
+                {bulkProgress.current === bulkProgress.total 
+                  ? "Création du fichier ZIP..." 
+                  : `Certificat ${bulkProgress.current} sur ${bulkProgress.total}`}
+              </p>
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
@@ -322,6 +449,21 @@ export default function CertificateGenerator() {
             animate={{ y: 0, opacity: 1 }}
             className="mt-16 flex gap-4 p-2 bg-white/50 backdrop-blur-xl rounded-2xl border border-white shadow-xl"
           >
+            <input 
+              type="file" 
+              accept=".csv" 
+              className="hidden" 
+              ref={csvInputRef} 
+              onChange={handleBulkCSV} 
+            />
+            <button
+              onClick={() => csvInputRef.current?.click()}
+              disabled={!!exporting || !!bulkProgress}
+              className="flex items-center gap-2 px-6 py-3 text-sm font-black text-slate-600 hover:bg-white rounded-xl transition-all disabled:opacity-50"
+            >
+              Import CSV
+            </button>
+            <div className="w-px h-10 bg-slate-200/50 my-1" />
             <button
               onClick={() => window.print()}
               className="flex items-center gap-2 px-6 py-3 text-sm font-black text-[#1B3A6B] hover:bg-white rounded-xl transition-all"
@@ -331,7 +473,7 @@ export default function CertificateGenerator() {
             </button>
             <button
               onClick={() => handleExport('png')}
-              disabled={!!exporting}
+              disabled={!!exporting || !!bulkProgress}
               className="flex items-center gap-2 px-6 py-3 text-sm font-black text-teal-600 hover:bg-white rounded-xl transition-all disabled:opacity-50"
             >
               <ImageIcon className="w-4 h-4" />
@@ -340,7 +482,7 @@ export default function CertificateGenerator() {
             <div className="w-px h-10 bg-slate-200/50 my-1" />
             <button
               onClick={() => handleExport('pdf')}
-              disabled={!!exporting}
+              disabled={!!exporting || !!bulkProgress}
               className="flex items-center gap-2 px-8 py-3 text-sm font-black bg-blue-600 text-white rounded-xl shadow-lg shadow-blue-600/20 hover:bg-blue-700 transition-all disabled:opacity-50"
             >
               <Download className="w-4 h-4" />

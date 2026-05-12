@@ -91,3 +91,11 @@ export async function exportAsPDF(
   const safe = filename.endsWith('.pdf') ? filename : `${filename}.pdf`;
   pdf.save(safe);
 }
+
+export async function getPDFBlob(elementId: string): Promise<Blob> {
+  const { default: jsPDF } = await import('jspdf');
+  const dataUrl = await captureElement(elementId);
+  const pdf = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+  pdf.addImage(dataUrl, 'PNG', 0, 0, 297, 210);
+  return pdf.output('blob');
+}
